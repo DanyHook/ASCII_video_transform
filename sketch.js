@@ -8,19 +8,30 @@ https://www.pattvira.com/
 ----------------------------------------
 */
 
-let asciiChar = "◼︎♦︎$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,^`'. ";
-// let asciiChar = " .:-=+*#%@";
+const asciiChar =
+  "◼︎♦︎$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,^`'. ";
+// const asciiChar = " .:-=+*#%@";
 
 let video;
-let size = 4;
-let vidSize;
+const size = 4;
+
+let recorder;
+let recordedChunks = [];
+let isRecording = false;
+let recordBtn;
+let stopBtn;
+let canvas;
 
 function setup() {
-  let canvas = createCanvas(720, 1280);
+  canvas = createCanvas(720, 1280);
   canvas.elt.getContext('2d', { willReadFrequently: true });
   textFont('Courier New'); // Fuente monotipo tipo ASCII
 
-  vidSize = width / size;
+
+  recordBtn = select('#startRec');
+  stopBtn = select('#stopRec');
+  recordBtn.mousePressed(startRecording);
+  stopBtn.mousePressed(stopRecording);
 
   video = createVideo("Automatic.MP4", videoLoaded);
   video.size(width / size, height / size);
@@ -61,4 +72,44 @@ function draw() {
       text(t, x, y);
     }
   }
+}
+
+function startRecording() {
+  if (isRecording) return;
+  recordedChunks = [];
+  const stream = canvas.elt.captureStream(30);
+  // Add audio from the video element if available
+  const audioTracks = video.elt.captureStream().getAudioTracks();
+  if (audioTracks.length > 0) {
+    stream.addTrack(audioTracks[0]);
+  }
+  recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+  recorder.ondataavailable = (e) => {
+    if (e.data && e.data.size > 0) {
+      recordedChunks.push(e.data);
+    }
+  };
+  recorder.onstop = saveRecording;
+  recorder.start();
+  isRecording = true;
+  recordBtn.attribute('disabled', '');
+  stopBtn.removeAttribute('disabled');
+}
+
+function stopRecording() {
+  if (!isRecording) return;
+  recorder.stop();
+  isRecording = false;
+  recordBtn.removeAttribute('disabled');
+  stopBtn.attribute('disabled', '');
+}
+
+function saveRecording() {
+  const blob = new Blob(recordedChunks, { type: 'video/webm' });
+  const url = URL.createObjectURL(blob);
+  const a = createA(url, 'ascii_video.webm');
+  a.download = 'ascii_video.webm';
+  a.elt.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }

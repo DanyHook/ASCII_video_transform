@@ -115,8 +115,8 @@ function saveRecording() {
   const blob = new Blob(recordedChunks, { type: 'video/webm' });
   const url = URL.createObjectURL(blob);
   const a = createA(url, 'ascii_video.webm');
-  a.download = 'ascii_video.webm';
+  a.attribute('download', 'ascii_video.webm');
   a.elt.click();
-  a.remove();
+  setTimeout(() => a.remove(), 0);
   URL.revokeObjectURL(url);
 }

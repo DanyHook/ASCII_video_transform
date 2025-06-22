@@ -23,6 +23,10 @@ let recordBtn;
 let stopBtn;
 let canvas;
 
+// IndexedDB constants for caching recorded videos
+const DB_NAME = 'asciiVideoCache';
+const STORE_NAME = 'videos';
+
 function setup() {
   // create a temporary canvas; final size is set when the camera loads
   canvas = createCanvas(outputWidth, outputWidth);
@@ -119,4 +123,35 @@ function saveRecording() {
   a.elt.click();
   a.remove();
   URL.revokeObjectURL(url);
+
+  // store the recorded video in IndexedDB for caching
+  saveToCache('lastRecording', blob);
+}
+
+// Open an IndexedDB connection for caching videos
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME);
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Save a blob in the cache
+async function saveToCache(key, blob) {
+  try {
+    const db = await openDB();
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    tx.objectStore(STORE_NAME).put(blob, key);
+    tx.oncomplete = () => db.close();
+    tx.onerror = () => console.error('Cache save failed', tx.error);
+  } catch (err) {
+    console.error('IndexedDB error', err);
+  }
 }

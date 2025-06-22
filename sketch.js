@@ -14,6 +14,7 @@ const asciiChar =
 
 let video;
 const size = 4;
+const outputWidth = 720; // base width for ASCII output
 
 let recorder;
 let recordedChunks = [];
@@ -23,7 +24,8 @@ let stopBtn;
 let canvas;
 
 function setup() {
-  canvas = createCanvas(720, 1280);
+  // create a temporary canvas; final size is set when the camera loads
+  canvas = createCanvas(outputWidth, outputWidth);
   canvas.elt.getContext('2d', { willReadFrequently: true });
   textFont('Courier New'); // Fuente monotipo tipo ASCII
 
@@ -34,12 +36,16 @@ function setup() {
   stopBtn.mousePressed(stopRecording);
 
   video = createCapture({ video: true, audio: true }, videoLoaded);
-  video.size(width / size, height / size);
   video.hide(); // hides the original video
 }
 
 function videoLoaded() {
   video.volume(0);
+  const camW = video.elt.videoWidth || video.width;
+  const camH = video.elt.videoHeight || video.height;
+  const newHeight = int(outputWidth * camH / camW);
+  resizeCanvas(outputWidth, newHeight);
+  video.size(width / size, height / size);
 }
 
 function mousePressed() {

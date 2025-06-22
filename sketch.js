@@ -53,7 +53,7 @@ function mousePressed() {
 }
 
 function draw() {
-  background(0);
+  background(255);
   video.loadPixels();
 
   for (let i = 0; i < video.width; i++) {
@@ -70,7 +70,7 @@ function draw() {
       let y = j * size + size / 2;
       let t = asciiChar.charAt(tIndex);
 
-      fill(0, 255, 0);
+      fill(0);
       noStroke();
       textSize(size);
       textAlign(CENTER, CENTER);

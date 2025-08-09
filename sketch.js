@@ -33,14 +33,13 @@ function setup() {
   recordBtn.mousePressed(startRecording);
   stopBtn.mousePressed(stopRecording);
 
-  video = createVideo("Automatic.MP4", videoLoaded);
+  video = createCapture({ video: true, audio: true }, videoLoaded);
   video.size(width / size, height / size);
   video.hide(); // hides the original video
 }
 
 function videoLoaded() {
-  video.loop();
-  video.volume(0); // muted video for smoother autoplay
+  video.volume(0);
 }
 
 function mousePressed() {
@@ -79,7 +78,9 @@ function startRecording() {
   recordedChunks = [];
   const stream = canvas.elt.captureStream(30);
   // Add audio from the video element if available
-  const audioTracks = video.elt.captureStream().getAudioTracks();
+  const audioTracks = video.elt.srcObject
+    ? video.elt.srcObject.getAudioTracks()
+    : [];
   if (audioTracks.length > 0) {
     stream.addTrack(audioTracks[0]);
   }
@@ -107,9 +108,14 @@ function stopRecording() {
 function saveRecording() {
   const blob = new Blob(recordedChunks, { type: 'video/webm' });
   const url = URL.createObjectURL(blob);
-  const a = createA(url, 'ascii_video.webm');
+  const a = document.createElement('a');
+  a.style.display = 'none';
+  a.href = url;
   a.download = 'ascii_video.webm';
-  a.elt.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 100);
 }

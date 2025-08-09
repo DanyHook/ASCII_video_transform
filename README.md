@@ -7,4 +7,4 @@ Webcam ASCII Video creator
 Use the **Start Recording** button to begin capturing the canvas. Once you are
 ready to finish, press **Stop Recording** and a `ascii_video.webm` file will be
 downloaded containing the recording of the ASCII render, including audio from
-the source video.
+the webcam if permission is granted.
